@@ -1,187 +1,27 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#df1717" />
-  <title>팀장 인터뷰 · 진행자</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-  <style>
-    :root{--red:#df1717;--orange:#ed4318;--yellow:#ffb43b;--ink:#111;--paper:#f5f4f1;--white:#fff;--line:#ddd8cf;--muted:#6d6860}
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{margin:0;font-family:Pretendard,"Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;background:var(--paper);color:var(--ink);letter-spacing:-.03em}
-    button{font:inherit;cursor:pointer}
-    .hidden{display:none!important}
-    .lobby{min-height:100svh;background:var(--red);color:#fff;position:relative;overflow:hidden;padding:44px 24px}
-    .lobby:before{content:"";position:absolute;width:52vw;aspect-ratio:1;border-radius:50%;background:var(--orange);right:-18vw;top:-20vw;opacity:.62}
-    .shell{width:min(1180px,100%);margin:0 auto;position:relative;z-index:2}
-    .eyebrow{font-size:13px;font-weight:900;letter-spacing:.08em;margin-bottom:18px}
-    h1{margin:0;font-size:clamp(50px,7vw,92px);line-height:.95;letter-spacing:-.07em;word-break:keep-all;text-wrap:balance}
-    .lede{max-width:720px;font-size:18px;line-height:1.65;color:#ffe7e2;word-break:keep-all;text-wrap:pretty;margin:22px 0 34px}
-    .grid{display:grid;grid-template-columns:380px minmax(0,1fr);gap:18px;align-items:stretch}
-    .card{background:#fff;color:#111;border-radius:30px;padding:24px;box-shadow:0 18px 60px rgba(40,24,13,.14)}
-    .card-title{font-size:14px;font-weight:900;color:#6f6a63;margin-bottom:16px}
-    .qr{min-height:300px;display:grid;place-items:center}
-    .qr canvas,.qr img{max-width:100%;height:auto}
-    .url{margin-top:14px;font-size:12px;line-height:1.45;color:#777;word-break:break-all}
-    .countrow{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #ddd;padding-bottom:16px}
-    .countrow small{display:block;color:#777;font-weight:900;margin-bottom:8px}
-    .count{font-size:64px;line-height:1;font-weight:950}
-    .people{display:flex;flex-wrap:wrap;gap:8px;min-height:130px;align-content:flex-start;padding:20px 0}
-    .person{padding:10px 14px;border-radius:999px;background:#f1f0ed;font-weight:850}
-    .actions{display:flex;flex-wrap:wrap;gap:10px}
-    .btn{border:0;border-radius:999px;padding:15px 20px;font-weight:900}
-    .btn.dark{background:#111;color:#fff}
-    .btn.light{background:#fff;color:var(--red);border:2px solid var(--red)}
-    .btn.red{background:var(--red);color:#fff}
-    .hint{margin-top:12px;font-size:12px;color:#817b72;line-height:1.5;word-break:keep-all}
-    .console{min-height:100svh;background:#111;color:#fff;padding:42px 24px 90px}
-    .console .shell{width:min(1220px,100%)}
-    .console-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:28px}
-    .console h2{margin:0;font-size:clamp(40px,5vw,72px);line-height:1;letter-spacing:-.06em;word-break:keep-all;text-wrap:balance}
-    .console-sub{margin:14px 0 0;color:#bdb7ae;line-height:1.6;word-break:keep-all}
-    .toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-    .tool{border:1px solid #ffffff30;background:transparent;color:#fff;border-radius:999px;padding:11px 14px;font-weight:850}
-    .tool.active{background:var(--yellow);border-color:var(--yellow);color:#111}
-    .tool.danger{background:#fff;color:var(--red);border-color:#fff}
-    .panels{display:grid;grid-template-columns:minmax(320px,.75fr) minmax(0,1.25fr);gap:16px}
-    .panel{border:1px solid #ffffff24;background:#191919;border-radius:28px;overflow:hidden}
-    .ph{padding:16px 20px;border-bottom:1px solid #ffffff1f;display:flex;justify-content:space-between;align-items:center;gap:10px}
-    .pb{padding:20px}
-    .bigq{font-size:clamp(28px,3vw,40px);line-height:1.2;font-weight:900;word-break:keep-all;text-wrap:balance;margin:0 0 18px}
-    .status{border:1px solid #ffffff28;border-radius:999px;padding:8px 10px;font-size:12px;font-weight:900}
-    .wall{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:650px;overflow:auto}
-    .note{background:#fff;color:#111;border-radius:20px;padding:18px;min-height:145px;display:flex;flex-direction:column;justify-content:space-between}
-    .note.q2{background:#fff0c5}.note.q3{background:#ffe4dd}
-    .note p{margin:0;line-height:1.5;word-break:keep-all;text-wrap:pretty}
-    .meta{font-size:11px;color:#777;margin-top:15px;font-weight:800}
-    .empty{grid-column:1/-1;border:1px dashed #ffffff30;border-radius:20px;min-height:260px;display:grid;place-items:center;color:#aaa;text-align:center;padding:20px;word-break:keep-all}
-    .mini-people{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-    .mini-person{font-size:12px;border:1px solid #ffffff28;border-radius:999px;padding:8px 10px;color:#ddd}
-    .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:#000;color:#fff;border:1px solid #ffffff24;border-radius:999px;padding:12px 16px;opacity:0;transition:.2s;z-index:200;font-weight:800;font-size:13px}
-    .toast.show{opacity:1;transform:translate(-50%,0)}
-    @media(max-width:860px){.grid,.panels{grid-template-columns:1fr}.console-head{flex-direction:column}.toolbar{justify-content:flex-start}.grid{max-width:680px}.wall{max-height:none}}
-    @media(max-width:540px){.lobby,.console{padding-left:12px;padding-right:12px}.card,.panel{border-radius:22px}.wall{grid-template-columns:1fr}.count{font-size:54px}.actions .btn{width:100%}}
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#df1717"><title>팀장 인터뷰 · 진행자</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+:root{--red:#df1717;--orange:#ed4318;--amber:#ffb43b;--ink:#151515;--paper:#f5f4f1;--white:#fff;--line:#dfdcd5;--muted:#6c675f;--green:#168a55}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Pretendard,"Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;background:var(--paper);color:var(--ink);letter-spacing:-.03em}button{font:inherit;cursor:pointer}.hidden{display:none!important}.ko{word-break:keep-all;overflow-wrap:normal}.display{text-wrap:balance}.copy{text-wrap:pretty}.shell{width:min(1240px,calc(100vw - 40px));margin:auto}.eyebrow{font-size:12px;font-weight:950;letter-spacing:.08em}.lobby{min-height:100svh;background:var(--red);color:#fff;padding:48px 0;position:relative;overflow:hidden}.lobby:after{content:"";position:absolute;width:52vw;aspect-ratio:1;border-radius:50%;background:var(--orange);right:-18vw;top:-22vw;opacity:.62}.lobby .shell{position:relative;z-index:2}.lobby h1{font-size:clamp(50px,7vw,92px);line-height:.96;letter-spacing:-.07em;margin:18px 0 20px;max-width:900px}.lede{max-width:720px;font-size:18px;line-height:1.65;color:#ffe8e4;margin:0 0 30px}.lobby-grid{display:grid;grid-template-columns:380px minmax(0,1fr);gap:18px}.card{background:#fff;color:#111;border-radius:30px;padding:24px;box-shadow:0 18px 60px rgba(40,24,13,.14)}.card-title{font-size:13px;font-weight:950;color:#777;margin-bottom:14px}.qr{min-height:300px;display:grid;place-items:center}.qr canvas,.qr img{max-width:100%;height:auto}.url{margin-top:14px;font-size:12px;color:#777;line-height:1.5;word-break:break-all}.countrow{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:15px}.countrow small{display:block;color:#777;font-weight:900;margin-bottom:6px}.count{font-size:62px;line-height:1;font-weight:950}.people{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;min-height:130px;padding:20px 0}.person,.online-chip{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:9px 12px;font-size:13px;font-weight:900}.person{background:#f0eeea;color:#777}.person.online,.online-chip{background:#e9f7ef;color:#126b43}.online-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(22,138,85,.12)}.actions{display:flex;gap:9px;flex-wrap:wrap}.btn{border:0;border-radius:999px;padding:14px 18px;font-weight:950}.btn.dark{background:#111;color:#fff}.btn.light{background:#fff;color:var(--red);border:2px solid var(--red)}.hint{margin-top:12px;font-size:12px;color:#817b72;line-height:1.55}.console{min-height:100svh;padding:24px 0 72px;background:var(--paper)}.topbar{position:sticky;top:0;z-index:20;background:rgba(245,244,241,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:14px 0}.toprow{display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{display:flex;align-items:center;gap:10px}.brandmark{width:34px;height:34px;border-radius:50%;background:var(--red);display:grid;place-items:center;color:#fff;font-weight:950}.brand strong{font-size:18px}.online-strip{padding:18px 0 6px}.online-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:10px}.online-head h3{margin:0;font-size:14px}.online-list{display:flex;gap:8px;flex-wrap:wrap}.stage{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:18px;margin-top:18px}.question-box{background:#fff;border:1px solid var(--line);border-radius:30px;padding:28px;box-shadow:0 15px 50px rgba(40,24,13,.05)}.question-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.qtab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 13px;font-size:12px;font-weight:950;color:#777}.qtab.active{background:var(--red);border-color:var(--red);color:#fff}.question-label{font-size:12px;font-weight:950;color:var(--red);letter-spacing:.06em;margin-bottom:10px}.bigq{font-size:clamp(34px,4vw,58px);line-height:1.12;font-weight:950;letter-spacing:-.055em;margin:0;max-width:980px}.control{background:#181818;color:#fff;border-radius:26px;padding:20px;align-self:start;position:sticky;top:82px}.control-title{font-size:13px;font-weight:950;color:#bbb;margin-bottom:14px}.status-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #ffffff20}.status-pill{display:inline-flex;align-items:center;gap:7px;border-radius:999px;background:#ffffff12;padding:8px 10px;font-size:12px;font-weight:900}.control .btn{width:100%;margin-top:9px}.control .btn.light{background:#fff;border:0}.conversation{margin-top:18px}.conv-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin-bottom:12px}.conv-head h2{font-size:clamp(28px,4vw,48px);line-height:1.05;letter-spacing:-.05em;margin:0}.conv-head p{margin:7px 0 0;color:var(--muted);line-height:1.5}.viewtoggle{display:flex;gap:6px}.viewbtn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 12px;font-size:12px;font-weight:900}.viewbtn.active{background:#111;color:#fff;border-color:#111}.wall{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.note{background:#fff;border:1px solid var(--line);border-radius:22px;padding:20px;min-height:170px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 12px 34px rgba(40,24,13,.04)}.note p{font-size:18px;line-height:1.55;margin:0}.meta{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:18px;font-size:12px;font-weight:900;color:#777}.name{color:var(--ink)}.empty{grid-column:1/-1;min-height:220px;border:1px dashed #c9c5bd;border-radius:22px;display:grid;place-items:center;text-align:center;color:#8a857d;background:#faf9f7;padding:24px}.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,15px);background:#111;color:#fff;border-radius:999px;padding:12px 16px;opacity:0;pointer-events:none;transition:.2s;z-index:100;font-size:13px;font-weight:900}.toast.show{opacity:1;transform:translate(-50%,0)}button:focus-visible{outline:3px solid var(--amber);outline-offset:3px}@media(max-width:980px){.lobby-grid,.stage{grid-template-columns:1fr}.control{position:static}.wall{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.shell{width:calc(100vw - 24px)}.lobby{padding-top:28px}.card,.question-box{border-radius:22px}.toprow{align-items:flex-start}.online-strip{padding-top:14px}.wall{grid-template-columns:1fr}.conv-head{align-items:flex-start;flex-direction:column}.lobby h1{font-size:13vw}}@media(prefers-reduced-motion:reduce){*{transition-duration:.001ms!important}}
+</style>
 </head>
 <body>
-  <section class="lobby" id="lobby">
-    <div class="shell">
-      <div class="eyebrow">HOST LOBBY · TEAM LEADER INTERVIEW</div>
-      <h1>팀장님들이<br>접속할 때까지 기다려 주세요.</h1>
-      <p class="lede">화면의 QR코드를 띄워 주세요. 팀장님들은 QR을 찍고 이름만 입력하면 접속됩니다. 명단이 모두 보이면 <strong>진행자 들어가기</strong>를 눌러 인터뷰를 시작하세요.</p>
-      <div class="grid">
-        <div class="card">
-          <div class="card-title">참여자용 QR</div>
-          <div class="qr" id="qrcode"></div>
-          <div class="url" id="participantUrl"></div>
-        </div>
-        <div class="card">
-          <div class="countrow">
-            <div><small>현재 접속</small><div class="count" id="participantCount">0</div></div>
-            <strong style="color:#777">명</strong>
-          </div>
-          <div class="people" id="participantList"><span style="color:#999">아직 접속한 팀장님이 없습니다.</span></div>
-          <div class="actions">
-            <button class="btn dark" id="enterConsole">진행자 들어가기</button>
-            <button class="btn light" id="resetLobby">오늘 데이터 초기화</button>
-          </div>
-          <div class="hint">초기화하면 오늘 응답과 접속자 명단이 모두 삭제되고 Q1부터 다시 시작합니다.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="console hidden" id="console">
-    <div class="shell">
-      <div class="console-head">
-        <div>
-          <div class="eyebrow" style="color:var(--yellow)">LIVE HOST CONSOLE</div>
-          <h2>팀장 인터뷰 진행 화면</h2>
-          <p class="console-sub">질문을 전환하면 참가자 화면도 자동으로 바뀝니다. 응답은 오른쪽에 실시간으로 모입니다.</p>
-        </div>
-        <div class="toolbar">
-          <button class="tool active" data-q="1">Q1 열기</button>
-          <button class="tool" data-q="2">Q2 열기</button>
-          <button class="tool" data-q="3">Q3 열기</button>
-          <button class="tool" id="toggleOpen">응답 닫기</button>
-          <button class="tool" id="backLobby">QR 대기화면</button>
-          <button class="tool danger" id="resetConsole">오늘 데이터 초기화</button>
-        </div>
-      </div>
-
-      <div class="panels">
-        <div class="panel">
-          <div class="ph"><strong>현재 질문</strong><span class="status" id="openStatus">응답 가능</span></div>
-          <div class="pb">
-            <div class="bigq" id="currentQuestion"></div>
-            <div class="ph" style="padding:14px 0 10px;border:0"><strong>접속자</strong><span class="status"><span id="consoleCount">0</span>명</span></div>
-            <div class="mini-people" id="consolePeople"></div>
-          </div>
-        </div>
-        <div class="panel">
-          <div class="ph"><strong>실시간 대화 월</strong><span class="status"><span id="responseCount">0</span>개의 경험</span></div>
-          <div class="pb"><div class="wall" id="wall"><div class="empty">아직 공유된 경험이 없습니다.</div></div></div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <div class="toast" id="toast"></div>
-
-  <script>
-    const SUPABASE_URL='https://ynqzzdelgaivuriyxurq.supabase.co';
-    const SUPABASE_KEY='sb_publishable_iJdKCuA7_lr98TkFFG1PvQ_A5RD9EAa';
-    const ROOM='LEADER26';
-    const HOST_KEY='786af06e-d789-4247-a01d-273f9f6d1d73';
-    const VERSION='20260831-4';
-    const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-    const Q={1:'요즘 팀을 운영하며 가장 자주 신경 쓰이는 장면은 무엇인가요?',2:'그 장면에서 특히 어렵거나 부담되는 지점은 무엇인가요?',3:'조금만 달라져도 도움이 될 지원이나 변화는 무엇일까요?'};
-    let activeQ=1, isOpen=true, entered=false;
-    const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-    function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-    function toast(t){$('#toast').textContent=t;$('#toast').classList.add('show');clearTimeout(window.__tt);window.__tt=setTimeout(()=>$('#toast').classList.remove('show'),1600)}
-    const participantUrl=location.origin+location.pathname.replace(/host\.html$/,'')+'?v='+VERSION;
-    $('#participantUrl').textContent=participantUrl;
-    new QRCode($('#qrcode'),{text:participantUrl,width:270,height:270,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
-
-    async function loadParticipants(){
-      const r=await db.rpc('get_workshop_participants',{p_code:ROOM,p_host_key:HOST_KEY});
-      const list=r.data||[];
-      $('#participantCount').textContent=list.length;
-      $('#consoleCount').textContent=list.length;
-      $('#participantList').innerHTML=list.length?list.map(x=>'<span class="person">'+esc(x.name)+'</span>').join(''):'<span style="color:#999">아직 접속한 팀장님이 없습니다.</span>';
-      $('#consolePeople').innerHTML=list.length?list.map(x=>'<span class="mini-person">'+esc(x.name)+'</span>').join(''):'<span style="color:#888;font-size:12px">접속자 없음</span>';
-    }
-    async function loadState(){
-      const st=await db.rpc('get_workshop_state',{p_code:ROOM});
-      if(st.data?.[0]){activeQ=Number(st.data[0].active_question||1);isOpen=Boolean(st.data[0].is_open)}
-      $('#currentQuestion').textContent=Q[activeQ];
-      $('#openStatus').textContent=isOpen?'응답 가능':'응답 마감';
-      $('#toggleOpen').textContent=isOpen?'응답 닫기':'응답 다시 열기';
-      $$('[data-q]').forEach(b=>b.classList.toggle('active',Number(b.dataset.q)===activeQ));
-    }
-    async function loadResponses(){
-      const r=await db.rpc('get_workshop_responses',{p_code:ROOM});
-      const list=r.data||[];
-      $('#responseCount').textContent=list.length;
-      $('#wall').innerHTML=list.length?list.map(x=>'<article class="note q'+x.question_no+'"><p>'+esc(x.content)+'</p><div class="meta">Q'+x.question_no+' · '+esc(x.nickname||'이름 없음')+'</div></article>').join(''):'<div class="empty">아직 공유된 경험이 없습니다.</div>';
-    }
-    async function refreshAll(){await Promise.all([loadParticipants(),loadState(),loadResponses()])}
-    async function resetAll(){
-      if(!confirm('오늘 입력된 응답과 접속자 명단을 모두 초기화할까요?'))return;
-      const r=await db.rpc('reset_workshop_data',{p_code:ROOM,p_host_key:HOST_KEY});
-      if(r.error||r.data!==true)return toast('초기화하지 못했습니다.');
-      activeQ=1;isOpen=true;await refreshAll();toast('오늘 데이터가 초기화되었습니다.');
-    }
-    $('#enterConsole').onclick=()=>{entered=true;$('#lobby').classList.add('hidden');$('#console').classList.remove('hidden');refreshAll()};
-    $('#backLobby').onclick=()=>{entered=false;$('#console').classList.add('hidden');$('#lobby').classList.remove('hidden');loadParticipants()};
-    $('#resetLobby').onclick=resetAll;$('#resetConsole').onclick=resetAll;
-    $$('[data-q]').forEach(b=>b.onclick=async()=>{const n=Number(b.dataset.q);const r=await db.rpc('set_workshop_question',{p_code:ROOM,p_host_key:HOST_KEY,p_question:n});if(r.error)return toast('질문을 바꾸지 못했습니다.');activeQ=n;await loadState();toast('Q'+n+'로 전환했습니다.')});
-    $('#toggleOpen').onclick=async()=>{const r=await db.rpc('set_workshop_open',{p_code:ROOM,p_host_key:HOST_KEY,p_is_open:!isOpen});if(r.error)return toast('응답 상태를 바꾸지 못했습니다.');isOpen=!isOpen;await loadState();toast(isOpen?'응답을 다시 열었습니다.':'응답 접수를 닫았습니다.')};
-    refreshAll();
-    setInterval(()=>{if(entered)refreshAll();else loadParticipants()},1500);
-  </script>
-</body>
-</html>
+<section class="lobby" id="lobby"><div class="shell"><div class="eyebrow">HOST LOBBY · TEAM LEADER INTERVIEW</div><h1 class="ko display">QR로 접속한 팀장님을<br>확인하고 시작하세요.</h1><p class="lede ko copy">팀장님들은 QR을 찍고 이름만 입력하면 온라인 명단에 표시됩니다. 모두 접속하면 <strong>진행자 들어가기</strong>를 눌러 인터뷰를 시작하세요.</p><div class="lobby-grid"><div class="card"><div class="card-title">참여자용 QR</div><div class="qr" id="qrcode"></div><div class="url" id="participantUrl"></div></div><div class="card"><div class="countrow"><div><small>현재 온라인</small><div class="count" id="participantCount">0</div></div><strong style="color:#777">명</strong></div><div class="people" id="participantList"><span style="color:#999">아직 접속한 팀장님이 없습니다.</span></div><div class="actions"><button class="btn dark" id="enterConsole">진행자 들어가기</button><button class="btn light" id="resetLobby">오늘 데이터 초기화</button></div><div class="hint">초기화하면 오늘 응답과 접속자 명단이 삭제되고 Q1부터 다시 시작합니다.</div></div></div></div></section>
+<section class="console hidden" id="console"><div class="topbar"><div class="shell toprow"><div class="brand"><div class="brandmark">S</div><div><div class="eyebrow" style="color:var(--red)">LIVE HOST</div><strong>팀장 인터뷰</strong></div></div><div class="online-chip"><span class="online-dot"></span><span><b id="topOnlineCount">0</b>명 온라인</span></div></div></div><div class="shell"><section class="online-strip"><div class="online-head"><h3>접속 중인 팀장님</h3><span style="font-size:12px;color:var(--muted)">최근 12초 이내 접속 기준</span></div><div class="online-list" id="consolePeople"></div></section><div class="stage"><section class="question-box"><div class="question-nav"><button class="qtab active" data-q="1">Q1 장면</button><button class="qtab" data-q="2">Q2 어려움</button><button class="qtab" data-q="3">Q3 지원</button></div><div class="question-label" id="questionLabel">CURRENT QUESTION · Q1</div><h1 class="bigq ko display" id="currentQuestion"></h1></section><aside class="control"><div class="control-title">진행 도구</div><div class="status-row"><span>응답 상태</span><span class="status-pill" id="openStatus"><span class="online-dot"></span>열림</span></div><div class="status-row"><span>전체 응답</span><strong id="totalCount">0</strong></div><button class="btn dark" id="toggleOpen">응답 닫기</button><button class="btn light" id="backLobby">QR 대기화면</button><button class="btn light" id="resetConsole">오늘 데이터 초기화</button></aside></div><section class="conversation"><div class="conv-head"><div><h2 class="ko display">현재 질문의 실시간 대화</h2><p class="ko copy">답변을 함께 보면서 반복되는 장면과 공통 어려움을 바로 이야기해 보세요.</p></div><div class="viewtoggle"><button class="viewbtn active" data-view="current">현재 질문</button><button class="viewbtn" data-view="all">전체 보기</button></div></div><div class="wall" id="wall"><div class="empty">아직 공유된 경험이 없습니다.</div></div></section></div></section>
+<div class="toast" id="toast"></div>
+<script>
+const SUPABASE_URL='https://ynqzzdelgaivuriyxurq.supabase.co',SUPABASE_KEY='sb_publishable_iJdKCuA7_lr98TkFFG1PvQ_A5RD9EAa',ROOM='LEADER26',HOST_KEY='786af06e-d789-4247-a01d-273f9f6d1d73',VERSION='20260831-5';
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY),Q={1:'요즘 팀을 운영하며 가장 자주 신경 쓰이는 장면은 무엇인가요?',2:'그 장면에서 특히 어렵거나 부담되는 지점은 무엇인가요?',3:'조금만 달라져도 도움이 될 지원이나 변화는 무엇일까요?'};let activeQ=1,isOpen=true,entered=false,view='current',responses=[];const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function toast(t){$('#toast').textContent=t;$('#toast').classList.add('show');clearTimeout(window.__tt);window.__tt=setTimeout(()=>$('#toast').classList.remove('show'),1600)}function isOnline(x){return Date.now()-new Date(x.last_seen_at).getTime()<12000}
+const participantUrl=location.origin+location.pathname.replace(/host\.html$/,'')+'?v='+VERSION;$('#participantUrl').textContent=participantUrl;new QRCode($('#qrcode'),{text:participantUrl,width:270,height:270,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+async function loadParticipants(){const r=await db.rpc('get_workshop_participants',{p_code:ROOM,p_host_key:HOST_KEY});const list=r.data||[],online=list.filter(isOnline);$('#participantCount').textContent=online.length;$('#topOnlineCount').textContent=online.length;$('#participantList').innerHTML=list.length?list.map(x=>'<span class="person '+(isOnline(x)?'online':'')+'">'+(isOnline(x)?'<span class="online-dot"></span>':'')+esc(x.name)+(isOnline(x)?' · 온라인':' · 오프라인')+'</span>').join(''):'<span style="color:#999">아직 접속한 팀장님이 없습니다.</span>';$('#consolePeople').innerHTML=online.length?online.map(x=>'<span class="online-chip"><span class="online-dot"></span>'+esc(x.name)+' · 온라인</span>').join(''):'<span style="font-size:13px;color:#888">현재 온라인 접속자가 없습니다.</span>'}
+async function loadState(){const st=await db.rpc('get_workshop_state',{p_code:ROOM});if(st.data?.[0]){activeQ=Number(st.data[0].active_question||1);isOpen=Boolean(st.data[0].is_open)}$('#currentQuestion').textContent=Q[activeQ];$('#questionLabel').textContent='CURRENT QUESTION · Q'+activeQ;$('#openStatus').innerHTML=isOpen?'<span class="online-dot"></span>열림':'<span style="width:8px;height:8px;border-radius:50%;background:#999"></span>닫힘';$('#toggleOpen').textContent=isOpen?'응답 닫기':'응답 다시 열기';$$('[data-q]').forEach(b=>b.classList.toggle('active',Number(b.dataset.q)===activeQ))}
+function renderWall(){const list=view==='current'?responses.filter(x=>Number(x.question_no)===activeQ):responses;$('#totalCount').textContent=responses.length;$('#wall').innerHTML=list.length?list.map(x=>'<article class="note"><p class="ko">'+esc(x.content)+'</p><div class="meta"><span class="name">'+esc(x.nickname||'이름 없음')+'</span><span>Q'+x.question_no+'</span></div></article>').join(''):'<div class="empty">'+(view==='current'?'현재 질문에 아직 공유된 경험이 없습니다.':'아직 공유된 경험이 없습니다.')+'</div>'}
+async function loadResponses(){const r=await db.rpc('get_workshop_responses',{p_code:ROOM});responses=r.data||[];renderWall()}async function refreshAll(){await Promise.all([loadParticipants(),loadState(),loadResponses()])}
+async function resetAll(){if(!confirm('오늘 입력된 응답과 접속자 명단을 모두 초기화할까요?'))return;const r=await db.rpc('reset_workshop_data',{p_code:ROOM,p_host_key:HOST_KEY});if(r.error||r.data!==true)return toast('초기화하지 못했습니다.');activeQ=1;isOpen=true;await refreshAll();toast('오늘 데이터가 초기화되었습니다.')}
+$('#enterConsole').onclick=async()=>{const r=await db.rpc('set_workshop_open',{p_code:ROOM,p_host_key:HOST_KEY,p_is_open:true});if(r.error)return toast('응답을 열지 못했습니다.');isOpen=true;entered=true;$('#lobby').classList.add('hidden');$('#console').classList.remove('hidden');await refreshAll();window.scrollTo(0,0)};$('#backLobby').onclick=()=>{$('#console').classList.add('hidden');$('#lobby').classList.remove('hidden');entered=false;window.scrollTo(0,0)};$('#resetLobby').onclick=resetAll;$('#resetConsole').onclick=resetAll;
+$$('[data-q]').forEach(b=>b.onclick=async()=>{const n=Number(b.dataset.q);const r=await db.rpc('set_workshop_question',{p_code:ROOM,p_host_key:HOST_KEY,p_question:n});if(r.error)return toast('질문을 바꾸지 못했습니다.');activeQ=n;await loadState();renderWall()});$('#toggleOpen').onclick=async()=>{const r=await db.rpc('set_workshop_open',{p_code:ROOM,p_host_key:HOST_KEY,p_is_open:!isOpen});if(r.error)return toast('응답 상태를 변경하지 못했습니다.');isOpen=!isOpen;await loadState()};$$('[data-view]').forEach(b=>b.onclick=()=>{view=b.dataset.view;$$('[data-view]').forEach(x=>x.classList.toggle('active',x===b));renderWall()});refreshAll();setInterval(refreshAll,1800);
+</script>
+</body></html>
